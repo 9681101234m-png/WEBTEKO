@@ -1,4 +1,6 @@
 import asyncio
+from aiohttp import web
+
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import CommandStart
 from aiogram.types import (
@@ -8,7 +10,7 @@ from aiogram.types import (
     InlineKeyboardButton
 )
 
-TOKEN = "8707687693:AAH9zTwonmRilxQX1I4eo8q6DrR8eQ72NJM"
+TOKEN = "8707687693:AAG33ODS_fiHe5fLo6JuHgVbuZ7Grd3CAq8"
 
 CHANNEL_ID = "@huffjy"
 
@@ -17,6 +19,22 @@ WEBINAR_LINK = "https://teko-com.ru/online-vebinar/vebinar-effektivnaya-sistema-
 bot = Bot(TOKEN)
 dp = Dispatcher()
 
+# --- Web server для Render (чтобы не падал) ---
+async def handle(request):
+    return web.Response(text="Bot is alive")
+
+async def start_web():
+    app = web.Application()
+    app.add_routes([web.get("/", handle)])
+
+    runner = web.AppRunner(app)
+    await runner.setup()
+
+    site = web.TCPSite(runner, "0.0.0.0", 10000)
+    await site.start()
+
+
+# --- КНОПКИ ---
 keyboard = InlineKeyboardMarkup(
     inline_keyboard=[
         [
@@ -34,6 +52,7 @@ keyboard = InlineKeyboardMarkup(
     ]
 )
 
+# --- Хэндлер /start ---
 @dp.message(CommandStart())
 async def start(message: Message):
     await message.answer(
@@ -41,6 +60,7 @@ async def start(message: Message):
         reply_markup=keyboard
     )
 
+# --- Проверка подписки ---
 @dp.callback_query(F.data == "check_sub")
 async def check_sub(callback: CallbackQuery):
 
@@ -61,13 +81,20 @@ async def check_sub(callback: CallbackQuery):
 
     except:
         await callback.message.answer(
-            "Вы не подписаны на канал."
+            "Не удалось проверить подписку. Возможно, бот не админ канала."
         )
 
     await callback.answer()
 
+
+# --- ЗАПУСК ---
 async def main():
+    # ВАЖНО: держим порт для Render
+    asyncio.create_task(start_web())
+
+    # запуск бота
     await dp.start_polling(bot)
 
-if __name__ == "__main__":
+
+if name == "__main__":
     asyncio.run(main())
