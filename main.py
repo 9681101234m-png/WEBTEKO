@@ -12,7 +12,7 @@ from aiogram.types import (
 
 TOKEN = "8707687693:AAG33ODS_fiHe5fLo6JuHgVbuZ7Grd3CAq8"
 
-CHANNEL_ID = "@huffjy"
+CHANNEL_ID = "@teko_pro"
 
 WEBINAR_LINK = "https://teko-com.ru/online-vebinar/vebinar-effektivnaya-sistema-bezopasnosti-s-espe/"
 
@@ -40,7 +40,7 @@ keyboard = InlineKeyboardMarkup(
         [
             InlineKeyboardButton(
                 text="Подписаться на ТЕКО pro",
-                url="https://t.me/huffjy"
+                url="https://t.me/teko_pro"
             )
         ],
         [
