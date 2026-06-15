@@ -12,7 +12,7 @@ from aiogram.types import (
 
 TOKEN = "8707687693:AAHCrVyq7s9DW2WQQcrwqVniMtDZj5vUQzg"
 
-CHANNEL_ID = "@teko_pro"
+CHANNEL_ID = "-1002699431479"
 
 WEBINAR_LINK = "https://teko-com.ru/online-vebinar/vebinar-effektivnaya-sistema-bezopasnosti-s-espe/"
 
