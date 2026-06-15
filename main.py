@@ -10,16 +10,17 @@ CallbackQuery,
 InlineKeyboardMarkup,
 InlineKeyboardButton
 )
+from aiogram.webhook.aiohttp_server import SimpleRequestHandler
 
 # === НАСТРОЙКИ ===
 TOKEN = "8707687693:AAHCrVyq7s9DW2WQQcrwqVniMtDZj5vUQzg"
 CHANNEL_ID = "-1002699431479"
 WEBINAR_LINK = "https://teko-com.ru/online-vebinar/vebinar-effektivnaya-sistema-bezopasnosti-s-espe/"
 
-# Для Render
-PORT = int(os.getenv("PORT", 10000)) # Render даёт свой порт
+PORT = int(os.getenv("PORT", 10000))
 WEBHOOK_PATH = "/webhook"
-WEBHOOK_URL = f"https://{os.getenv('RENDER_EXTERNAL_HOSTNAME', 'your-app.onrender.com')}{WEBHOOK_PATH}"
+# Render сам подставит правильный hostname
+WEBHOOK_URL = f"https://{os.getenv('RENDER_EXTERNAL_HOSTNAME')}{WEBHOOK_PATH}"
 
 bot = Bot(TOKEN)
 dp = Dispatcher()
@@ -40,6 +41,7 @@ await message.answer(
 reply_markup=keyboard
 )
 
+
 @dp.callback_query(F.data == "check_sub")
 async def check_sub(callback: CallbackQuery):
 try:
@@ -47,42 +49,43 @@ member = await bot.get_chat_member(CHANNEL_ID, callback.from_user.id)
 
 if member.status in ["member", "administrator", "creator"]:
 await callback.message.answer(
-f"Чтобы зарегистрироваться на вебинар, пройдите по ссылке:\n{WEBINAR_LINK}"
+f"✅ Чтобы зарегистрироваться на вебинар, пройдите по ссылке:\n\n{WEBINAR_LINK}"
 )
 else:
 await callback.message.answer("Вы еще не подписаны на ТЕКО pro.")
 
 except Exception as e:
 await callback.message.answer("Не удалось проверить подписку. Попробуйте позже.")
-print(f"Error checking subscription: {e}") # для логов
+print(f"Ошибка проверки подписки: {e}")
 
 await callback.answer()
 
-# ================== WEBHOOK ==================
-async def on_startup(app):
-await bot.set_webhook(WEBHOOK_URL, drop_pending_updates=True)
-print(f"✅ Webhook успешно установлен: {WEBHOOK_URL}")
 
-async def on_shutdown(app):
+# ================== WEBHOOK ==================
+async def on_startup(app: web.Application):
+await bot.set_webhook(WEBHOOK_URL, drop_pending_updates=True)
+print(f"✅ Webhook установлен: {WEBHOOK_URL}")
+
+
+async def on_shutdown(app: web.Application):
 await bot.session.close()
 print("⛔ Бот остановлен")
 
-# Основной веб-сервер
+
+# ================== ЗАПУСК ==================
+if __name__ == "__main__":
 app = web.Application()
 app.on_startup.append(on_startup)
 app.on_shutdown.append(on_shutdown)
 
-# Регистрируем обработчик вебхука
-webhook_handler = web.RequestHandler(dispatcher=dp, bot=bot) # aiogram 3.x
-app.router.add_post(WEBHOOK_PATH, webhook_handler)
-
-# Простая страница, чтобы Render видел, что сервис живой
+# Простая страница для Render
 async def handle_root(request):
 return web.Response(text="Bot is running with webhook ✅")
 
 app.router.add_get("/", handle_root)
 
-# ================== ЗАПУСК ==================
-if __name__ == "__main__":
-print("🚀 Запуск бота с webhook...")
+# Регистрация вебхука
+SimpleRequestHandler(dispatcher=dp, bot=bot).register(app, path=WEBHOOK_PATH)
+
+print("🚀 Запуск бота...")
 web.run_app(app, host="0.0.0.0", port=PORT)
