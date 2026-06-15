@@ -10,7 +10,7 @@ from aiogram.types import (
     InlineKeyboardButton
 )
 
-TOKEN = "8707687693:AAG33ODS_fiHe5fLo6JuHgVbuZ7Grd3CAq8"
+TOKEN = "8707687693:AAHCrVyq7s9DW2WQQcrwqVniMtDZj5vUQzg"
 
 CHANNEL_ID = "@teko_pro"
 
